@@ -1,0 +1,51 @@
+- hostname: 40-1-raguhner-schleife
+  ips:
+  - 10.196.40.1
+  networks:
+  - 10.196.140.0/27
+  wifi:
+  - wolfen.freifunk.net (40.1)
+
+- hostname: 40-2-subaru-lab
+  ips:
+  - 10.196.40.2
+  networks:
+  - 10.196.140.32/27
+  wifi:
+  - wolfen.freifunk.net (40.2)
+
+- hostname: 40-3-raguhner-schleife
+  ips:
+  - 10.196.40.3
+  networks:
+  - 10.196.140.64/27
+  wifi:
+  - wolfen.freifunk.net (40.3)
+
+- hostname: 40-4-jugendklub
+  ips:
+  - 10.196.40.4
+  - 10.196.39.2/24
+  networks:
+  - 10.196.140.96/27
+  wifi:
+  - wolfen.freifunk.net (40.4)
+
+- hostname: 40-5-raguhner-schleife-gw
+  ips:
+  - 10.196.40.5
+  networks:
+  - 10.196.140.128/27
+  wifi:
+  - wolfen.freifunk.net (40.5)
+
+- hostname: 40-6-jugendklub-innen
+  ips:
+  - 10.196.40.6
+  - 10.196.40.7
+  - 10.196.39.1/24
+  networks:
+  - 10.196.140.160/27
+  wifi:
+  - wolfen.freifunk.net (40.6)
+

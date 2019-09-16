@@ -1,0 +1,135 @@
+---
+propose_dhcp:
+# from https://wiki.freifunk-potsdam.de/IP-Adressen#DHCP_-_Netze
+- subnet: 28
+  ips: 16
+  text: für zu Hause mit wenig drumrum
+- subnet: 27
+  ips: 32
+  text: für einen Platz, kleinen Club- oder Vereinsraum, WG
+- subnet: 26
+  ips: 64
+  text: für Cafe, Kneipe, Jugendclub, Verein
+- subnet: 25
+  ips: 128
+  text: für größere Besucherzahlen mit Roaming
+- subnet: 24
+  ips: 256
+  text: für größere Besucherzahlen mit Roaming
+---
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="description" content="Coderrouters in Potsdam">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Freifunk-Router in Bitterfeld-Wolfen</title>
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <link rel="stylesheet" type="text/css" href="css/grid.css">
+    <link rel="stylesheet" type="text/css" href="css/fonts.css">
+    <script type="text/javascript" src="js/load-events.js"></script>
+  </head>
+  <body>
+    <div class="router-listing grid-whole equalize">
+      <div class="router s-grid-whole m-grid-whole l-grid-whole padded">
+        <h1>Freifunk-Router in Bitterfeld-Wolfen:</h1>
+      </div>
+      <div class="router s-grid-whole m-grid-whole l-grid-whole padded">
+        Neuen Router eintragen:
+        {% assign max_mesh_ip = 1 -%}
+        {% assign max_kabelmesh_ip = 1 -%}
+        {% assign max_network = 140 | times: 256 -%}
+        {% for router in site.data.router -%}
+          {% comment %} Compute the next mesh ip of a router. {% endcomment -%}
+          {% for mesh_ip in router.ips -%}
+            {% assign this_ip = mesh_ip | split: "." | last | split: "/" | first | plus: 1 -%}
+            {% if mesh_ip contains "10.196.40." and max_mesh_ip < this_ip -%}
+              {% assign max_mesh_ip = this_ip -%}
+            {% endif -%}
+            {% if mesh_ip contains "10.196.39." and max_kabelmesh_ip < this_ip -%}
+              {% assign max_kabelmesh_ip = this_ip -%}
+            {% endif -%}
+          {% endfor -%}
+          {% for network in router.networks -%}
+            {% assign split_network = network | split: "/" -%}
+            {% assign network_ip = split_network | first | split: "." -%}
+            {% assign subnet = split_network | last | plus: 0 -%}
+            {% assign network_start = network_ip[2] | times: 256 | plus: network_ip[3] -%}
+            {% assign network_ip_count = 1 -%}
+            {% for i in (subnet..31) %}
+              {% assign network_ip_count = network_ip_count | times: 2 -%}
+            {% endfor -%}
+            {% assign check_network_is_zero = network_start | modulo: network_ip_count -%}
+            {% if check_network_is_zero != 0 -%}
+              Fehler! Im Netzwerk "{{ network }}" vom Router "{{ router.hostname }}"
+              sind nicht alle letzten {{ 32 | minus: subnet }} Bits auf 0 gesetzt.
+              {% assign correct_net = network_start | minus: check_network_is_zero -%}
+              Es müsste "10.196.{{ correct_net | divided_by: 256 }}.{{ correct_net | modulo: 256 }}/{{ subnet }}" heißen.
+              {% continue -%}
+            {% endif -%}
+            {% assign next_network = network_start | plus: network_ip_count -%}
+            {% if max_network < next_network -%}
+              {% assign max_network = next_network -%}
+            {% endif -%}
+          {% endfor -%}
+        {% endfor -%}
+        <pre class="new-router">
+- hostname: 40-{{ max_mesh_ip }}-HOSTNAME
+  ips:
+  - 10.196.40.{{ max_mesh_ip }} # Mesh-IP über 2.4GHz
+  - 10.196.40.{{ max_mesh_ip | plus: 1 }} # optionale Mesh-IP über 5GHz
+  - 10.196.39.{{ max_kabelmesh_ip }}/24 # optionale Kabel-Mesh-IP
+  networks: # wähle eins
+{% for network in page.propose_dhcp -%}
+  {% assign this_net = max_network -%}
+  {% assign this_net_zero = this_net | modulo: network.ips -%}
+  {% if this_net_zero != 0 -%}
+    {% assign this_net = this_net | minus: this_net_zero | plus: network.ips -%}
+  {% endif %}  - 10.196.{{ this_net | divided_by: 256 }}.{{ this_net | modulo: 256 }}/{{ network.subnet }} # {{ network.ips | minus: 3 }} IP-Adressen {{ network.text }}
+  {% endfor %}wifi:
+  - wolfen.freifunk.net (40.{{ max_mesh_ip }})
+        </pre>
+      </div>
+      {% for router in site.data.router %}
+      <div class="router s-grid-whole m-grid-half l-grid-third padded-inner">
+        <h2 id="{{ router.hostname }}">
+          <a href="http://{{ router.ips | first }}">
+            {{ router.hostname }}
+          </a>
+        </h2>
+        <a href="https://monitor.freifunk-potsdam.de/grafana/d/000000008/node-overview?var-hostname={{ router.hostname }}">
+          Statistiken</a>
+        <p>
+          WLAN:
+          {% for wlan in router.wifi %}
+            {{ wlan }}
+            {%- if forloop.last %}{% else %},{% endif -%}
+          {%- endfor -%}
+        </p>
+        <p>
+          IP-Adressen:
+          {% for ip in router.ips %}
+              <a href="http://{{ ip | split: '/' | first  }}">{{ ip }}</a>
+            {%- if forloop.last %}{% else %}, {% endif -%}
+          {%- endfor -%}
+        </p>
+        <p>
+          Netzwerke:
+          {% for net in router.networks %}
+              {{ net }}
+            {%- if forloop.last %}{% else %}, {% endif -%}
+          {%- endfor -%}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="footer">
+      <div class="link s-grid-half m-grid-half l-grid-half">
+        <a href="https://github.com/Freifunk-Wolfen/netz">Seite verbessern</a>
+      </div>
+      <div class="link s-grid-half m-grid-half l-grid-half">
+        <a href="https://github.com/Freifunk-Wolfen/netz/blob/master/LICENSE">Lizenz</a>
+      </div>
+    </div>
+  </body>
+</html>
