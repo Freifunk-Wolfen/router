@@ -87,8 +87,7 @@ propose_dhcp:
     {% assign this_net = this_net | minus: this_net_zero | plus: network.ips -%}
   {% endif %}- 10.196.{{ this_net | divided_by: 256 }}.{{ this_net | modulo: 256 }}/{{ network.subnet }} # {{ network.ips | minus: 3 }} IP-Adressen {{ network.text }}
   {% endfor %}wifi:
-  - wolfen.freifunk.net (40.{{ max_mesh_ip }})
-        </pre>
+  - wolfen.freifunk.net (40.{{ max_mesh_ip }})</pre>
       </div>
       {% for router in site.data.router %}
       <div class="router s-grid-whole m-grid-half l-grid-third padded-inner">
