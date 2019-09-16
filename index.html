@@ -80,12 +80,12 @@ propose_dhcp:
   - 10.196.40.{{ max_mesh_ip | plus: 1 }} # optionale Mesh-IP über 5GHz
   - 10.196.39.{{ max_kabelmesh_ip }}/24 # optionale Kabel-Mesh-IP
   networks: # wähle eins
-{% for network in page.propose_dhcp -%}
+  {% for network in page.propose_dhcp -%}
   {% assign this_net = max_network -%}
   {% assign this_net_zero = this_net | modulo: network.ips -%}
   {% if this_net_zero != 0 -%}
     {% assign this_net = this_net | minus: this_net_zero | plus: network.ips -%}
-  {% endif %}  - 10.196.{{ this_net | divided_by: 256 }}.{{ this_net | modulo: 256 }}/{{ network.subnet }} # {{ network.ips | minus: 3 }} IP-Adressen {{ network.text }}
+  {% endif %}- 10.196.{{ this_net | divided_by: 256 }}.{{ this_net | modulo: 256 }}/{{ network.subnet }} # {{ network.ips | minus: 3 }} IP-Adressen {{ network.text }}
   {% endfor %}wifi:
   - wolfen.freifunk.net (40.{{ max_mesh_ip }})
         </pre>
